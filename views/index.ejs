@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-r from-blue-800 to-indigo-900 text-white">
+
+    <div class="flex flex-col items-center justify-center min-h-screen">
+        <div class="bg-white bg-opacity-20 backdrop-filter backdrop-blur-md rounded-2xl shadow-2xl p-8 w-96">
+            
+            <div class="text-center mb-6">
+                <h1 id="city-name" class="text-4xl font-bold tracking-wide"><%= cityname2 || 'City' %></h1>
+            </div>
+
+            <div class="flex justify-center items-center mb-6">
+                <h2 id="temp" class="text-7xl font-extrabold"><%= temperature || '16' %></h2>
+                <span class="text-4xl ml-1">°C</span>
+            </div>
+
+            <div class="space-y-3 text-lg">
+                <div class="flex justify-between">
+                    <span>Cloudy</span>
+                    <span id="desc" class="font-semibold"><%= kindOfdesc || 'Unknown' %></span>
+                </div>
+                <div class="flex justify-between">
+                    <span>Humidity</span>
+                    <span id="humidity" class="font-semibold"><%= kindOfhumid || 'Unknown' %> %</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>Visibility</span>
+                    <span id="visibility" class="font-semibold"><%= kindOfvisible || 'Unknown' %> Km</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>Wind</span>
+                    <span id="wind" class="font-semibold"><%= kindOfwind || 'Unknown' %> m/s</span>
+                </div>
+            </div>
+
+            <% if (error) { %>
+                <div class="mt-4 text-red-500 text-center">
+                    <strong><%= error %></strong>
+                </div>
+            <% } %>
+
+            <form id="city-form" action="/" method="post" class="mt-6" onsubmit="return validateForm()">
+                <input type="text" id="city-input" name="cityName" placeholder="Enter city name" autocomplete="off" class="w-full p-3 rounded-lg bg-white bg-opacity-10 placeholder-gray-300 focus:ring-2 focus:ring-indigo-500 text-lg">
+                <div class="flex justify-between mt-4">
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition duration-300">Search</button>
+                    <button type="button" onclick="getLocation()" class="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded-lg transition duration-300">Get Location</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function validateForm() {
+            const cityInput = document.getElementById('city-input').value.trim();
+            
+            if (cityInput === '') {
+                alert('Please enter a city name first.');
+                return false; // Prevent form submission
+            }
+            
+            return true; // Allow form submission
+        }
+
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(showPosition, showError);
+            } else {
+                alert("Geolocation is not supported by this browser.");
+            }
+        }
+    
+        function showPosition(position) {
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+    
+            fetch(`/weather-by-coordinates?lat=${lat}&lon=${lon}`)
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('temp').textContent = data.temperature;
+                document.getElementById('city-name').textContent = data.cityname2;
+                document.getElementById('desc').textContent = data.kindOfdesc;
+                document.getElementById('humidity').textContent = `${data.kindOfhumid}%`;
+                document.getElementById('visibility').textContent = `${data.kindOfvisible} Km`;
+                document.getElementById('wind').textContent = `${data.kindOfwind} m/s`;
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    
+        function showError(error) {
+            switch (error.code) {
+                case error.PERMISSION_DENIED:
+                    alert("User denied the request for Geolocation.");
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    alert("Location information is unavailable.");
+                    break;
+                case error.TIMEOUT:
+                    alert("The request to get user location timed out.");
+                    break;
+                case error.UNKNOWN_ERROR:
+                    alert("An unknown error occurred.");
+                    break;
+            }
+        }
+    </script>
+    
+</body>
+</html>
