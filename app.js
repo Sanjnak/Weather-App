@@ -3,6 +3,7 @@ const https = require("https");
 const bodyParser = require("body-parser");
 const app = express();
 
+app.set("views",_dirname + "/views");
 app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(__dirname + "/public"));
